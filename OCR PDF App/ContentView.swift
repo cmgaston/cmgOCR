@@ -204,7 +204,7 @@ class OCRViewModel {
 
 // MARK: - Documento per Esportazione
 struct TextDocument: FileDocument {
-    static var readableContentTypes: [UTType] { [.plainText, .markdown] }
+    static var readableContentTypes: [UTType] { [.plainText, UTType(tag: "md", tagClass: .filenameExtension, conformingTo: .plainText)!] }
     var text: String
 
     init(text: String) {
@@ -312,169 +312,21 @@ struct ContentView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 if let url = viewModel.selectedURL {
-                    HSplitView {
-                        // Sinistra: Anteprima documento PDF
-                        VStack {
-                            PDFKitRepresentedView(url: url)
-                        }
-                        .frame(minWidth: 300, maxWidth: .infinity, maxHeight: .infinity)
-                        
-                        // Destra: Risultato OCR o Elaborazione
-                        VStack {
-                            if viewModel.isProcessing {
-                                VStack(spacing: 20) {
-                                    ProgressView(value: viewModel.progress, total: 1.0)
-                                        .progressViewStyle(.linear)
-                                        .padding()
-                                    Text("Analisi in corso... \(Int(viewModel.progress * 100))%")
-                                        .font(.headline)
-                                }
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            } else if viewModel.recognizedText.isEmpty {
-                                ContentUnavailableView {
-                                    Label("Pronto per l'OCR", systemImage: "doc.text.magnifyingglass")
-                                } description: {
-                                    Text("Clicca su 'Inizia OCR' per estrarre il testo dal documento.")
-                                } actions: {
-                                    Button("Inizia OCR") {
-                                        Task {
-                                            await viewModel.startOCR()
-                                        }
-                                    }
-                                    .buttonStyle(.borderedProminent)
-                                    .controlSize(.large)
-                                }
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            } else {
-                                VStack(spacing: 0) {
-                                    // Toolbar di formattazione
-                                    HStack {
-                                        Button(action: toggleItalic) {
-                                            Label("Corsivo", systemImage: "italic")
-                                        }
-                                        .buttonStyle(.bordered)
-                                        .controlSize(.small)
-                                        .help("Rendi corsivo (*)")
-                                        .keyboardShortcut("i", modifiers: .command)
- 
-                                        Button(action: toggleBold) {
-                                            Label("Grassetto", systemImage: "bold")
-                                        }
-                                        .buttonStyle(.bordered)
-                                        .controlSize(.small)
-                                        .help("Rendi grassetto (**)")
-                                        .keyboardShortcut("b", modifiers: .command)
-
-                                        Button(action: toggleH2) {
-                                            Text("H2")
-                                                .fontWeight(.bold)
-                                        }
-                                        .buttonStyle(.bordered)
-                                        .controlSize(.small)
-                                        .help("Titolo H2 (##)")
-                                        .keyboardShortcut("2", modifiers: .command)
-
-                                        Button(action: toggleH3) {
-                                            Text("H3")
-                                                .fontWeight(.bold)
-                                        }
-                                        .buttonStyle(.bordered)
-                                        .controlSize(.small)
-                                        .help("Titolo H3 (###)")
-                                        .keyboardShortcut("3", modifiers: .command)
-                                        
-                                        Spacer()
-                                    }
-                                    .padding(8)
-                                    .background(Color(NSColor.controlBackgroundColor))
-                                    
-                                    Divider()
-                                    
-                                    MacTextEditor(text: $viewModel.recognizedText, selectedRange: $selectedRange)
-                                        .background(Color(NSColor.textBackgroundColor))
-                                    
-                                    Divider()
-                                    
-                                    Button(action: { isExporting = true }) {
-                                        HStack {
-                                            Image(systemName: "square.and.arrow.up")
-                                            Text("Esporta il testo (.md)")
-                                        }
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 8)
-                                    }
-                                    .buttonStyle(.borderedProminent)
-                                    .tint(.accentColor)
-                                    .padding()
-                                }
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            }
-                        }
-                        .frame(minWidth: 300, maxWidth: .infinity, maxHeight: .infinity)
-                        .background(Color(NSColor.textBackgroundColor))
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    mainContentView(for: url)
                 } else {
-                    ContentUnavailableView {
-                        Label("Nessun documento", systemImage: "pdfview.fill")
-                    } description: {
-                        Text("Trascina o seleziona un file PDF per iniziare.")
-                    } actions: {
-                        Button("Seleziona PDF") {
-                            isImporterPresented = true
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.large)
-                    }
+                    noDocumentView
                 }
                 
                 if let error = viewModel.errorMessage {
-                    Text(error)
-                        .foregroundColor(.red)
-                        .padding()
-                        .background(.ultraThinMaterial)
+                    errorOverlay(error)
                 }
             }
             .navigationTitle(viewModel.selectedURL?.lastPathComponent ?? "Vision OCR Pro")
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button(action: { isImporterPresented = true }) {
-                        Label("Cambia PDF", systemImage: "doc.badge.plus")
-                    }
-                    .disabled(viewModel.isProcessing)
-                }
-                
-                if viewModel.selectedURL != nil && !viewModel.isProcessing {
-                    ToolbarItem(placement: .primaryAction) {
-                        if viewModel.recognizedText.isEmpty {
-                            Button("Inizia OCR") {
-                                Task { await viewModel.startOCR() }
-                            }
-                            .keyboardShortcut("R", modifiers: .command)
-                        } else {
-                            Button("Esporta") {
-                                isExporting = true
-                            }
-                            .keyboardShortcut("S", modifiers: .command)
-                        }
-                    }
-                }
-                
-                ToolbarItem(placement: .secondaryAction) {
-                    Button(action: {
-                        let pasteboard = NSPasteboard.general
-                        pasteboard.clearContents()
-                        pasteboard.setString(viewModel.recognizedText, forType: .string)
-                    }) {
-                        Label("Copia Testo", systemImage: "doc.on.doc")
-                    }
-                    .disabled(viewModel.recognizedText.isEmpty)
-                }
-            }
+            .toolbar { toolbarContent }
             .fileExporter(
                 isPresented: $isExporting,
                 document: TextDocument(text: viewModel.recognizedText),
-                contentType: .markdown,
+                contentType: .plainText, // Usiamo plainText come base per compatibilità
                 defaultFilename: (viewModel.selectedURL?.deletingPathExtension().lastPathComponent ?? "testo_estratto") + ".md"
             ) { result in
                 if case .failure(let error) = result {
@@ -483,8 +335,6 @@ struct ContentView: View {
             }
             .dropDestination(for: URL.self) { items, location in
                 guard let url = items.first else { return false }
-                
-                // Verifichiamo che sia un PDF (estensione o tipo)
                 if url.pathExtension.lowercased() == "pdf" {
                     viewModel.selectPDF(at: url)
                     return true
@@ -507,6 +357,155 @@ struct ContentView: View {
             }
         }
         .frame(minWidth: 900, minHeight: 600)
+    }
+    
+    @ViewBuilder
+    private func mainContentView(for url: URL) -> some View {
+        HSplitView {
+            PDFKitRepresentedView(url: url)
+                .frame(minWidth: 300, maxWidth: .infinity, maxHeight: .infinity)
+            
+            ocrSideView
+                .frame(minWidth: 300, maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color(NSColor.textBackgroundColor))
+        }
+    }
+    
+    @ViewBuilder
+    private var ocrSideView: some View {
+        if viewModel.isProcessing {
+            processingView
+        } else if viewModel.recognizedText.isEmpty {
+            emptyOCRView
+        } else {
+            editorView
+        }
+    }
+    
+    private var processingView: some View {
+        VStack(spacing: 20) {
+            ProgressView(value: viewModel.progress, total: 1.0)
+                .progressViewStyle(.linear)
+                .padding()
+            Text("Analisi in corso... \(Int(viewModel.progress * 100))%")
+                .font(.headline)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    private var emptyOCRView: some View {
+        ContentUnavailableView {
+            Label("Pronto per l'OCR", systemImage: "doc.text.magnifyingglass")
+        } description: {
+            Text("Clicca su 'Inizia OCR' per estrarre il testo dal documento.")
+        } actions: {
+            Button("Inizia OCR") {
+                Task { await viewModel.startOCR() }
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+        }
+    }
+    
+    private var editorView: some View {
+        VStack(spacing: 0) {
+            formattingToolbar
+            Divider()
+            MacTextEditor(text: $viewModel.recognizedText, selectedRange: $selectedRange)
+                .background(Color(NSColor.textBackgroundColor))
+            Divider()
+            exportButton
+        }
+    }
+    
+    private var formattingToolbar: some View {
+        HStack {
+            Button(action: toggleItalic) { Label("Corsivo", systemImage: "italic") }
+                .buttonStyle(.bordered).controlSize(.small).help("Rendi corsivo (*)")
+                .keyboardShortcut("i", modifiers: .command)
+            
+            Button(action: toggleBold) { Label("Grassetto", systemImage: "bold") }
+                .buttonStyle(.bordered).controlSize(.small).help("Rendi grassetto (**)")
+                .keyboardShortcut("b", modifiers: .command)
+            
+            Button(action: toggleH2) { Text("H2").fontWeight(.bold) }
+                .buttonStyle(.bordered).controlSize(.small).help("Titolo H2 (##)")
+                .keyboardShortcut("2", modifiers: .command)
+            
+            Button(action: toggleH3) { Text("H3").fontWeight(.bold) }
+                .buttonStyle(.bordered).controlSize(.small).help("Titolo H3 (###)")
+                .keyboardShortcut("3", modifiers: .command)
+            
+            Spacer()
+        }
+        .padding(8)
+        .background(Color(NSColor.controlBackgroundColor))
+    }
+    
+    private var exportButton: some View {
+        Button(action: { isExporting = true }) {
+            HStack {
+                Image(systemName: "square.and.arrow.up")
+                Text("Esporta il testo (.md)")
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(.accentColor)
+        .padding()
+    }
+    
+    private var noDocumentView: some View {
+        ContentUnavailableView {
+            Label("Nessun documento", systemImage: "pdfview.fill")
+        } description: {
+            Text("Trascina o seleziona un file PDF per iniziare.")
+        } actions: {
+            Button("Seleziona PDF") { isImporterPresented = true }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+        }
+    }
+    
+    private func errorOverlay(_ error: String) -> some View {
+        Text(error)
+            .foregroundColor(.red)
+            .padding()
+            .background(.ultraThinMaterial)
+    }
+    
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .primaryAction) {
+            Button(action: { isImporterPresented = true }) {
+                Label("Cambia PDF", systemImage: "doc.badge.plus")
+            }
+            .disabled(viewModel.isProcessing)
+        }
+        
+        if viewModel.selectedURL != nil && !viewModel.isProcessing {
+            ToolbarItem(placement: .primaryAction) {
+                if viewModel.recognizedText.isEmpty {
+                    Button("Inizia OCR") { Task { await viewModel.startOCR() } }
+                        .keyboardShortcut("R", modifiers: .command)
+                } else {
+                    Button("Esporta") { isExporting = true }
+                        .keyboardShortcut("S", modifiers: .command)
+                }
+            }
+        }
+        
+        ToolbarItem(placement: .secondaryAction) {
+            Button(action: {
+                let pasteboard = NSPasteboard.general
+                pasteboard.clearContents()
+                pasteboard.setString(viewModel.recognizedText, forType: .string)
+            }) {
+                Label("Copia Testo", systemImage: "doc.on.doc")
+            }
+            .disabled(viewModel.recognizedText.isEmpty)
+        }
     }
 }
 
