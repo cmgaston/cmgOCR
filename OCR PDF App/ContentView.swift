@@ -204,7 +204,7 @@ class OCRViewModel {
 
 // MARK: - Documento per Esportazione
 struct TextDocument: FileDocument {
-    static var readableContentTypes: [UTType] { [.plainText] }
+    static var readableContentTypes: [UTType] { [.plainText, .markdown] }
     var text: String
 
     init(text: String) {
@@ -269,6 +269,44 @@ struct ContentView: View {
         // Aggiorna la selezione per includere i caratteri "**"
         selectedRange = NSRange(location: range.location, length: range.length + 4)
     }
+
+    private func toggleH2() {
+        let range = selectedRange
+        guard range.location != NSNotFound else { return }
+        
+        let currentText = viewModel.recognizedText
+        let nsString = currentText as NSString
+        
+        // Trova l'inizio della riga corrente
+        let lineRange = nsString.lineRange(for: NSRange(location: range.location, length: 0))
+        let startOfLine = lineRange.location
+        
+        let prefix = "## "
+        let newText = nsString.replacingCharacters(in: NSRange(location: startOfLine, length: 0), with: prefix)
+        viewModel.recognizedText = newText
+        
+        // Aggiorna la selezione spostandola in avanti della lunghezza del prefisso
+        selectedRange = NSRange(location: range.location + prefix.count, length: range.length)
+    }
+
+    private func toggleH3() {
+        let range = selectedRange
+        guard range.location != NSNotFound else { return }
+        
+        let currentText = viewModel.recognizedText
+        let nsString = currentText as NSString
+        
+        // Trova l'inizio della riga corrente
+        let lineRange = nsString.lineRange(for: NSRange(location: range.location, length: 0))
+        let startOfLine = lineRange.location
+        
+        let prefix = "### "
+        let newText = nsString.replacingCharacters(in: NSRange(location: startOfLine, length: 0), with: prefix)
+        viewModel.recognizedText = newText
+        
+        // Aggiorna la selezione spostandola in avanti della lunghezza del prefisso
+        selectedRange = NSRange(location: range.location + prefix.count, length: range.length)
+    }
     
     var body: some View {
         NavigationStack {
@@ -326,6 +364,24 @@ struct ContentView: View {
                                         .controlSize(.small)
                                         .help("Rendi grassetto (**)")
                                         .keyboardShortcut("b", modifiers: .command)
+
+                                        Button(action: toggleH2) {
+                                            Text("H2")
+                                                .fontWeight(.bold)
+                                        }
+                                        .buttonStyle(.bordered)
+                                        .controlSize(.small)
+                                        .help("Titolo H2 (##)")
+                                        .keyboardShortcut("2", modifiers: .command)
+
+                                        Button(action: toggleH3) {
+                                            Text("H3")
+                                                .fontWeight(.bold)
+                                        }
+                                        .buttonStyle(.bordered)
+                                        .controlSize(.small)
+                                        .help("Titolo H3 (###)")
+                                        .keyboardShortcut("3", modifiers: .command)
                                         
                                         Spacer()
                                     }
@@ -342,7 +398,7 @@ struct ContentView: View {
                                     Button(action: { isExporting = true }) {
                                         HStack {
                                             Image(systemName: "square.and.arrow.up")
-                                            Text("Esporta il testo (.txt)")
+                                            Text("Esporta il testo (.md)")
                                         }
                                         .frame(maxWidth: .infinity)
                                         .padding(.vertical, 8)
@@ -418,8 +474,8 @@ struct ContentView: View {
             .fileExporter(
                 isPresented: $isExporting,
                 document: TextDocument(text: viewModel.recognizedText),
-                contentType: .plainText,
-                defaultFilename: (viewModel.selectedURL?.deletingPathExtension().lastPathComponent ?? "testo_estratto") + ".txt"
+                contentType: .markdown,
+                defaultFilename: (viewModel.selectedURL?.deletingPathExtension().lastPathComponent ?? "testo_estratto") + ".md"
             ) { result in
                 if case .failure(let error) = result {
                     viewModel.errorMessage = "Errore durante l'esportazione: \(error.localizedDescription)"
