@@ -248,6 +248,10 @@ struct ContentView: View {
         applyBlockPrefix("### ")
     }
 
+    private func toggleH4() {
+        applyBlockPrefix("#### ")
+    }
+
     private func toggleQuote() {
         applyBlockPrefix("> ")
     }
@@ -449,6 +453,7 @@ struct ContentView: View {
                 toolbarButton(text: "H1", action: toggleH1, tooltip: "Titolo 1 (Cmd+1)")
                 toolbarButton(text: "H2", action: toggleH2, tooltip: "Titolo 2 (Cmd+2)")
                 toolbarButton(text: "H3", action: toggleH3, tooltip: "Titolo 3 (Cmd+3)")
+                toolbarButton(text: "H4", action: toggleH4, tooltip: "Titolo 4 (Cmd+4)")
             }
             .padding(4)
             .background(Color(NSColor.windowBackgroundColor).opacity(0.5))
@@ -510,6 +515,7 @@ struct ContentView: View {
             case "H1": return .init("1", modifiers: .command)
             case "H2": return .init("2", modifiers: .command)
             case "H3": return .init("3", modifiers: .command)
+            case "H4": return .init("4", modifiers: .command)
             default: return nil
             }
         }
