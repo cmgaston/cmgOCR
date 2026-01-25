@@ -227,14 +227,18 @@ struct TextDocument: FileDocument {
 
 // MARK: - Interfaccia Utente
 struct ContentView: View {
-    @State private var viewModel = OCRViewModel()
+    @State private var viewModel: OCRViewModel
+
+    init(viewModel: OCRViewModel = OCRViewModel()) {
+        _viewModel = State(initialValue: viewModel)
+    }
     @State private var isImporterPresented = false
     @State private var isExporting = false
     @State private var selectedRange = NSRange(location: 0, length: 0)
 
     private func toggleItalic() {
         let range = selectedRange
-        guard range.location != NSNotFound else { return }
+        guard range.location != NSNotFound, range.length > 0 else { return }
         
         let currentText = viewModel.recognizedText
         let nsString = currentText as NSString
@@ -253,7 +257,7 @@ struct ContentView: View {
 
     private func toggleBold() {
         let range = selectedRange
-        guard range.location != NSNotFound else { return }
+        guard range.location != NSNotFound, range.length > 0 else { return }
         
         let currentText = viewModel.recognizedText
         let nsString = currentText as NSString
@@ -321,7 +325,7 @@ struct ContentView: View {
                     errorOverlay(error)
                 }
             }
-            .navigationTitle(viewModel.selectedURL?.lastPathComponent ?? "Vision OCR Pro")
+            .navigationTitle(viewModel.selectedURL?.lastPathComponent ?? "MyOCRapp")
             .toolbar { toolbarContent }
             .fileExporter(
                 isPresented: $isExporting,
@@ -423,10 +427,12 @@ struct ContentView: View {
             Button(action: toggleItalic) { Label("Corsivo", systemImage: "italic") }
                 .buttonStyle(.bordered).controlSize(.small).help("Rendi corsivo (*)")
                 .keyboardShortcut("i", modifiers: .command)
+                .disabled(selectedRange.length == 0)
             
             Button(action: toggleBold) { Label("Grassetto", systemImage: "bold") }
                 .buttonStyle(.bordered).controlSize(.small).help("Rendi grassetto (**)")
                 .keyboardShortcut("b", modifiers: .command)
+                .disabled(selectedRange.length == 0)
             
             Button(action: toggleH2) { Text("H2").fontWeight(.bold) }
                 .buttonStyle(.bordered).controlSize(.small).help("Titolo H2 (##)")
@@ -571,6 +577,24 @@ struct MacTextEditor: NSViewRepresentable {
     }
 }
 
-#Preview {
+#Preview("Stato Iniziale") {
     ContentView()
+}
+
+#Preview("Documento Caricato") {
+    let vm = OCRViewModel()
+    // Simuliamo un documento caricato e del testo estratto
+    vm.selectedURL = URL(fileURLWithPath: "/tmp/anteprima.pdf")
+    vm.recognizedText = """
+    # Titolo Documento
+    
+    Questo è un esempio di testo estratto tramite OCR. Puoi vedere come appare la barra di formattazione qui sopra:
+    
+    *   Testo in **grassetto** per evidenziare concetti.
+    *   Testo in *corsivo* per enfasi.
+    
+    ## Sezione 2
+    Usa le scorciatoie Cmd+B, Cmd+I o i pulsanti H2/H3 per strutturare il tuo markdown.
+    """
+    return ContentView(viewModel: vm)
 }
