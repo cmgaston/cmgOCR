@@ -236,80 +236,91 @@ struct ContentView: View {
     @State private var isExporting = false
     @State private var selectedRange = NSRange(location: 0, length: 0)
 
-    private func toggleItalic() {
-        let range = selectedRange
-        guard range.location != NSNotFound, range.length > 0 else { return }
-        
-        let currentText = viewModel.recognizedText
-        let nsString = currentText as NSString
-        
-        guard range.location + range.length <= nsString.length else { return }
-        
-        let selectedText = nsString.substring(with: range)
-        let newSnippet = "*\(selectedText)*"
-        
-        let newText = nsString.replacingCharacters(in: range, with: newSnippet)
-        viewModel.recognizedText = newText
-        
-        // Aggiorna la selezione per includere i caratteri "*"
-        selectedRange = NSRange(location: range.location, length: range.length + 2)
-    }
-
-    private func toggleBold() {
-        let range = selectedRange
-        guard range.location != NSNotFound, range.length > 0 else { return }
-        
-        let currentText = viewModel.recognizedText
-        let nsString = currentText as NSString
-        
-        guard range.location + range.length <= nsString.length else { return }
-        
-        let selectedText = nsString.substring(with: range)
-        let newSnippet = "**\(selectedText)**"
-        
-        let newText = nsString.replacingCharacters(in: range, with: newSnippet)
-        viewModel.recognizedText = newText
-        
-        // Aggiorna la selezione per includere i caratteri "**"
-        selectedRange = NSRange(location: range.location, length: range.length + 4)
+    private func toggleH1() {
+        applyBlockPrefix("# ")
     }
 
     private func toggleH2() {
-        let range = selectedRange
-        guard range.location != NSNotFound else { return }
-        
-        let currentText = viewModel.recognizedText
-        let nsString = currentText as NSString
-        
-        // Trova l'inizio della riga corrente
-        let lineRange = nsString.lineRange(for: NSRange(location: range.location, length: 0))
-        let startOfLine = lineRange.location
-        
-        let prefix = "## "
-        let newText = nsString.replacingCharacters(in: NSRange(location: startOfLine, length: 0), with: prefix)
-        viewModel.recognizedText = newText
-        
-        // Aggiorna la selezione spostandola in avanti della lunghezza del prefisso
-        selectedRange = NSRange(location: range.location + prefix.count, length: range.length)
+        applyBlockPrefix("## ")
     }
 
     private func toggleH3() {
+        applyBlockPrefix("### ")
+    }
+
+    private func toggleQuote() {
+        applyBlockPrefix("> ")
+    }
+
+    private func applyBlockPrefix(_ prefix: String) {
+        let range = selectedRange
+        guard range.location != NSNotFound else { return }
+        
+        let currentText = viewModel.recognizedText
+        let nsString = currentText as NSString
+        let lineRange = nsString.lineRange(for: NSRange(location: range.location, length: 0))
+        let lineContent = nsString.substring(with: lineRange)
+        
+        var newText: String
+        var newLocation = range.location
+        
+        if lineContent.hasPrefix(prefix) {
+            // Rimuovi il prefisso
+            let updatedLine = String(lineContent.dropFirst(prefix.count))
+            newText = nsString.replacingCharacters(in: lineRange, with: updatedLine)
+            newLocation = max(lineRange.location, range.location - prefix.count)
+        } else {
+            // Aggiungi il prefisso
+            newText = nsString.replacingCharacters(in: NSRange(location: lineRange.location, length: 0), with: prefix)
+            newLocation = range.location + prefix.count
+        }
+        
+        viewModel.recognizedText = newText
+        selectedRange = NSRange(location: newLocation, length: range.length)
+    }
+
+    private func toggleItalic() {
+        applyInlineFormatting(delimiter: "*")
+    }
+
+    private func toggleBold() {
+        applyInlineFormatting(delimiter: "**")
+    }
+
+    private func applyInlineFormatting(delimiter: String) {
         let range = selectedRange
         guard range.location != NSNotFound else { return }
         
         let currentText = viewModel.recognizedText
         let nsString = currentText as NSString
         
-        // Trova l'inizio della riga corrente
-        let lineRange = nsString.lineRange(for: NSRange(location: range.location, length: 0))
-        let startOfLine = lineRange.location
-        
-        let prefix = "### "
-        let newText = nsString.replacingCharacters(in: NSRange(location: startOfLine, length: 0), with: prefix)
-        viewModel.recognizedText = newText
-        
-        // Aggiorna la selezione spostandola in avanti della lunghezza del prefisso
-        selectedRange = NSRange(location: range.location + prefix.count, length: range.length)
+        if range.length > 0 {
+            guard range.location + range.length <= nsString.length else { return }
+            let selectedText = nsString.substring(with: range)
+            
+            if selectedText.hasPrefix(delimiter) && selectedText.hasSuffix(delimiter) {
+                // Rimuovi formattazione
+                let start = selectedText.index(selectedText.startIndex, offsetBy: delimiter.count)
+                let end = selectedText.index(selectedText.endIndex, offsetBy: -delimiter.count)
+                let newSnippet = String(selectedText[start..<end])
+                
+                let newText = nsString.replacingCharacters(in: range, with: newSnippet)
+                viewModel.recognizedText = newText
+                selectedRange = NSRange(location: range.location, length: range.length - (delimiter.count * 2))
+            } else {
+                // Aggiungi formattazione
+                let newSnippet = "\(delimiter)\(selectedText)\(delimiter)"
+                let newText = nsString.replacingCharacters(in: range, with: newSnippet)
+                viewModel.recognizedText = newText
+                selectedRange = NSRange(location: range.location, length: range.length + (delimiter.count * 2))
+            }
+        } else {
+            // Nessuna selezione: inserisci i delimitatori e sposta il cursore al centro
+            let newSnippet = "\(delimiter)\(delimiter)"
+            let newText = nsString.replacingCharacters(in: range, with: newSnippet)
+            viewModel.recognizedText = newText
+            selectedRange = NSRange(location: range.location + delimiter.count, length: 0)
+        }
     }
     
     var body: some View {
@@ -423,29 +434,86 @@ struct ContentView: View {
     }
     
     private var formattingToolbar: some View {
-        HStack {
-            Button(action: toggleItalic) { Label("Corsivo", systemImage: "italic") }
-                .buttonStyle(.bordered).controlSize(.small).help("Rendi corsivo (*)")
-                .keyboardShortcut("i", modifiers: .command)
-                .disabled(selectedRange.length == 0)
+        HStack(spacing: 12) {
+            // Gruppo Testo
+            HStack(spacing: 4) {
+                toolbarButton(systemName: "bold", action: toggleBold, tooltip: "Grassetto (Cmd+B)")
+                toolbarButton(systemName: "italic", action: toggleItalic, tooltip: "Corsivo (Cmd+I)")
+            }
+            .padding(4)
+            .background(Color(NSColor.windowBackgroundColor).opacity(0.5))
+            .cornerRadius(8)
             
-            Button(action: toggleBold) { Label("Grassetto", systemImage: "bold") }
-                .buttonStyle(.bordered).controlSize(.small).help("Rendi grassetto (**)")
-                .keyboardShortcut("b", modifiers: .command)
-                .disabled(selectedRange.length == 0)
+            // Gruppo Titoli
+            HStack(spacing: 4) {
+                toolbarButton(text: "H1", action: toggleH1, tooltip: "Titolo 1 (Cmd+1)")
+                toolbarButton(text: "H2", action: toggleH2, tooltip: "Titolo 2 (Cmd+2)")
+                toolbarButton(text: "H3", action: toggleH3, tooltip: "Titolo 3 (Cmd+3)")
+            }
+            .padding(4)
+            .background(Color(NSColor.windowBackgroundColor).opacity(0.5))
+            .cornerRadius(8)
             
-            Button(action: toggleH2) { Text("H2").fontWeight(.bold) }
-                .buttonStyle(.bordered).controlSize(.small).help("Titolo H2 (##)")
-                .keyboardShortcut("2", modifiers: .command)
-            
-            Button(action: toggleH3) { Text("H3").fontWeight(.bold) }
-                .buttonStyle(.bordered).controlSize(.small).help("Titolo H3 (###)")
-                .keyboardShortcut("3", modifiers: .command)
+            // Gruppo Citazione
+            HStack(spacing: 4) {
+                toolbarButton(systemName: "quote.opening", action: toggleQuote, tooltip: "Citazione (Cmd+\\)")
+            }
+            .padding(4)
+            .background(Color(NSColor.windowBackgroundColor).opacity(0.5))
+            .cornerRadius(8)
             
             Spacer()
         }
-        .padding(8)
+        .padding(10)
         .background(Color(NSColor.controlBackgroundColor))
+    }
+
+    @ViewBuilder
+    private func toolbarButton(systemName: String? = nil, text: String? = nil, action: @escaping () -> Void, tooltip: String) -> some View {
+        Button(action: action) {
+            Group {
+                if let systemName = systemName {
+                    Image(systemName: systemName)
+                        .font(.system(size: 14, weight: .semibold))
+                } else if let text = text {
+                    Text(text)
+                        .font(.system(size: 12, weight: .black))
+                }
+            }
+            .frame(width: 32, height: 32)
+            .background(Color.primary.opacity(0.05))
+            .contentShape(RoundedRectangle(cornerRadius: 6))
+        }
+        .buttonStyle(.plain)
+        .help(tooltip)
+        .keyboardShortcut(getShortcut(for: systemName, or: text))
+        .onHover { inside in
+            if inside {
+                NSCursor.pointingHand.push()
+            } else {
+                NSCursor.pop()
+            }
+        }
+    }
+
+    private func getShortcut(for systemName: String?, or text: String?) -> KeyboardShortcut? {
+        if let sn = systemName {
+            switch sn {
+            case "bold": return .init("b", modifiers: .command)
+            case "italic": return .init("i", modifiers: .command)
+            case "quote.opening": return .init("\\", modifiers: .command)
+            default: return nil
+            }
+        }
+        if let t = text {
+            switch t {
+            case "H1": return .init("1", modifiers: .command)
+            case "H2": return .init("2", modifiers: .command)
+            case "H3": return .init("3", modifiers: .command)
+            default: return nil
+            }
+        }
+        return nil
     }
     
     private var exportButton: some View {
@@ -536,12 +604,18 @@ struct MacTextEditor: NSViewRepresentable {
         textView.allowsUndo = true
         textView.textContainerInset = NSSize(width: 8, height: 8)
         
+        textView.isAutomaticDashSubstitutionEnabled = false
+        textView.isAutomaticQuoteSubstitutionEnabled = false
+        textView.isAutomaticSpellingCorrectionEnabled = false
+        
         scrollView.documentView = textView
         return scrollView
     }
     
     func updateNSView(_ nsView: NSScrollView, context: Context) {
         guard let textView = nsView.documentView as? NSTextView else { return }
+        
+        context.coordinator.isUpdatingFromBinding = true
         
         if textView.string != text {
             textView.string = text
@@ -550,6 +624,8 @@ struct MacTextEditor: NSViewRepresentable {
         if textView.selectedRange() != selectedRange {
             textView.setSelectedRange(selectedRange)
         }
+        
+        context.coordinator.isUpdatingFromBinding = false
     }
     
     func makeCoordinator() -> Coordinator {
@@ -558,20 +634,33 @@ struct MacTextEditor: NSViewRepresentable {
     
     class Coordinator: NSObject, NSTextViewDelegate {
         var parent: MacTextEditor
+        var isUpdatingFromBinding = false
         
         init(_ parent: MacTextEditor) {
             self.parent = parent
         }
         
         func textDidChange(_ notification: Notification) {
-            guard let textView = notification.object as? NSTextView else { return }
-            parent.text = textView.string
+            guard !isUpdatingFromBinding,
+                  let textView = notification.object as? NSTextView else { return }
+            
+            let newText = textView.string
+            if parent.text != newText {
+                parent.text = newText
+            }
         }
         
         func textViewDidChangeSelection(_ notification: Notification) {
-            guard let textView = notification.object as? NSTextView else { return }
-            DispatchQueue.main.async {
-                self.parent.selectedRange = textView.selectedRange()
+            guard !isUpdatingFromBinding,
+                  let textView = notification.object as? NSTextView else { return }
+            
+            let newRange = textView.selectedRange()
+            if parent.selectedRange != newRange {
+                // Aggiorniamo la selezione immediatamente per evitare race conditions
+                // durante la digitazione veloce.
+                Task { @MainActor in
+                    self.parent.selectedRange = newRange
+                }
             }
         }
     }
