@@ -11,6 +11,7 @@ import SwiftUI
 import PDFKit
 import Vision
 import UniformTypeIdentifiers
+import AppKit
 
 // MARK: - Modello Strutturale
 struct TextElement {
@@ -229,6 +230,45 @@ struct ContentView: View {
     @State private var viewModel = OCRViewModel()
     @State private var isImporterPresented = false
     @State private var isExporting = false
+    @State private var selectedRange = NSRange(location: 0, length: 0)
+
+    private func toggleItalic() {
+        let range = selectedRange
+        guard range.location != NSNotFound else { return }
+        
+        let currentText = viewModel.recognizedText
+        let nsString = currentText as NSString
+        
+        guard range.location + range.length <= nsString.length else { return }
+        
+        let selectedText = nsString.substring(with: range)
+        let newSnippet = "*\(selectedText)*"
+        
+        let newText = nsString.replacingCharacters(in: range, with: newSnippet)
+        viewModel.recognizedText = newText
+        
+        // Aggiorna la selezione per includere i caratteri "*"
+        selectedRange = NSRange(location: range.location, length: range.length + 2)
+    }
+
+    private func toggleBold() {
+        let range = selectedRange
+        guard range.location != NSNotFound else { return }
+        
+        let currentText = viewModel.recognizedText
+        let nsString = currentText as NSString
+        
+        guard range.location + range.length <= nsString.length else { return }
+        
+        let selectedText = nsString.substring(with: range)
+        let newSnippet = "**\(selectedText)**"
+        
+        let newText = nsString.replacingCharacters(in: range, with: newSnippet)
+        viewModel.recognizedText = newText
+        
+        // Aggiorna la selezione per includere i caratteri "**"
+        selectedRange = NSRange(location: range.location, length: range.length + 4)
+    }
     
     var body: some View {
         NavigationStack {
@@ -269,10 +309,32 @@ struct ContentView: View {
                                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                             } else {
                                 VStack(spacing: 0) {
-                                    TextEditor(text: $viewModel.recognizedText)
-                                        .font(.system(.body, design: .monospaced))
-                                        .padding(8)
-                                        .scrollContentBackground(.hidden)
+                                    // Toolbar di formattazione
+                                    HStack {
+                                        Button(action: toggleItalic) {
+                                            Label("Corsivo", systemImage: "italic")
+                                        }
+                                        .buttonStyle(.bordered)
+                                        .controlSize(.small)
+                                        .help("Rendi corsivo (*)")
+                                        .keyboardShortcut("i", modifiers: .command)
+ 
+                                        Button(action: toggleBold) {
+                                            Label("Grassetto", systemImage: "bold")
+                                        }
+                                        .buttonStyle(.bordered)
+                                        .controlSize(.small)
+                                        .help("Rendi grassetto (**)")
+                                        .keyboardShortcut("b", modifiers: .command)
+                                        
+                                        Spacer()
+                                    }
+                                    .padding(8)
+                                    .background(Color(NSColor.controlBackgroundColor))
+                                    
+                                    Divider()
+                                    
+                                    MacTextEditor(text: $viewModel.recognizedText, selectedRange: $selectedRange)
                                         .background(Color(NSColor.textBackgroundColor))
                                     
                                     Divider()
@@ -389,6 +451,68 @@ struct ContentView: View {
             }
         }
         .frame(minWidth: 900, minHeight: 600)
+    }
+}
+
+// MARK: - Custom Text Editor for Selection Support
+struct MacTextEditor: NSViewRepresentable {
+    @Binding var text: String
+    @Binding var selectedRange: NSRange
+    
+    func makeNSView(context: Context) -> NSScrollView {
+        let scrollView = NSScrollView()
+        scrollView.hasVerticalScroller = true
+        scrollView.drawsBackground = false
+        
+        let textView = NSTextView()
+        textView.isRichText = false
+        textView.font = .monospacedSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
+        textView.isVerticallyResizable = true
+        textView.isHorizontallyResizable = false
+        textView.autoresizingMask = [.width]
+        textView.delegate = context.coordinator
+        textView.drawsBackground = false
+        textView.allowsUndo = true
+        textView.textContainerInset = NSSize(width: 8, height: 8)
+        
+        scrollView.documentView = textView
+        return scrollView
+    }
+    
+    func updateNSView(_ nsView: NSScrollView, context: Context) {
+        guard let textView = nsView.documentView as? NSTextView else { return }
+        
+        if textView.string != text {
+            textView.string = text
+        }
+        
+        if textView.selectedRange() != selectedRange {
+            textView.setSelectedRange(selectedRange)
+        }
+    }
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    class Coordinator: NSObject, NSTextViewDelegate {
+        var parent: MacTextEditor
+        
+        init(_ parent: MacTextEditor) {
+            self.parent = parent
+        }
+        
+        func textDidChange(_ notification: Notification) {
+            guard let textView = notification.object as? NSTextView else { return }
+            parent.text = textView.string
+        }
+        
+        func textViewDidChangeSelection(_ notification: Notification) {
+            guard let textView = notification.object as? NSTextView else { return }
+            DispatchQueue.main.async {
+                self.parent.selectedRange = textView.selectedRange()
+            }
+        }
     }
 }
 
