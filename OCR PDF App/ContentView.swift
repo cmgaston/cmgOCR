@@ -340,7 +340,7 @@ struct ContentView: View {
                     errorOverlay(error)
                 }
             }
-            .navigationTitle(viewModel.selectedURL?.lastPathComponent ?? "MyOCRapp")
+            .navigationTitle(viewModel.selectedURL?.lastPathComponent ?? "CMG MyOCR App")
             .toolbar { toolbarContent }
             .fileExporter(
                 isPresented: $isExporting,
