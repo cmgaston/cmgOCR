@@ -268,15 +268,54 @@ struct ContentView: View {
         var newText: String
         var newLocation = range.location
         
-        if lineContent.hasPrefix(prefix) {
-            // Rimuovi il prefisso
-            let updatedLine = String(lineContent.dropFirst(prefix.count))
-            newText = nsString.replacingCharacters(in: lineRange, with: updatedLine)
-            newLocation = max(lineRange.location, range.location - prefix.count)
+        if prefix.hasPrefix("#") {
+            // Rileva se esiste già un prefisso header (#)
+            var hashesCount = 0
+            for char in lineContent {
+                if char == "#" {
+                    hashesCount += 1
+                } else {
+                    break
+                }
+            }
+            
+            if hashesCount > 0 {
+                // Verifica se c'è uno spazio dopo i cancelletti
+                var existingPrefixLength = hashesCount
+                let afterHashes = lineContent.dropFirst(hashesCount)
+                if afterHashes.hasPrefix(" ") {
+                    existingPrefixLength += 1
+                }
+                
+                let existingPrefix = String(lineContent.prefix(existingPrefixLength))
+                let lineWithoutPrefix = String(lineContent.dropFirst(existingPrefixLength))
+                
+                if existingPrefix == prefix {
+                    // Se è esattamente lo stesso, lo rimuoviamo (toggle off)
+                    newText = nsString.replacingCharacters(in: lineRange, with: lineWithoutPrefix)
+                    newLocation = max(lineRange.location, range.location - existingPrefixLength)
+                } else {
+                    // Se è un header diverso, lo sostituiamo
+                    newText = nsString.replacingCharacters(in: lineRange, with: prefix + lineWithoutPrefix)
+                    newLocation = max(lineRange.location, range.location - existingPrefixLength + prefix.count)
+                }
+            } else {
+                // Nessun header esistente, lo aggiungiamo
+                newText = nsString.replacingCharacters(in: NSRange(location: lineRange.location, length: 0), with: prefix)
+                newLocation = range.location + prefix.count
+            }
         } else {
-            // Aggiungi il prefisso
-            newText = nsString.replacingCharacters(in: NSRange(location: lineRange.location, length: 0), with: prefix)
-            newLocation = range.location + prefix.count
+            // Logica originale per i prefissi non-header (es. Citazione "> ")
+            if lineContent.hasPrefix(prefix) {
+                // Rimuovi il prefisso
+                let updatedLine = String(lineContent.dropFirst(prefix.count))
+                newText = nsString.replacingCharacters(in: lineRange, with: updatedLine)
+                newLocation = max(lineRange.location, range.location - prefix.count)
+            } else {
+                // Aggiungi il prefisso
+                newText = nsString.replacingCharacters(in: NSRange(location: lineRange.location, length: 0), with: prefix)
+                newLocation = range.location + prefix.count
+            }
         }
         
         viewModel.recognizedText = newText
