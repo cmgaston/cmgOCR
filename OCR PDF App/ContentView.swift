@@ -204,7 +204,12 @@ class OCRViewModel {
 
 // MARK: - Documento per Esportazione
 struct TextDocument: FileDocument {
-    static var readableContentTypes: [UTType] { [.plainText, UTType(tag: "md", tagClass: .filenameExtension, conformingTo: .plainText)!] }
+    // Definizione dinamica basata sull'estensione per evitare errori di Info.plist mancante
+    static let markdownType = UTType(tag: "md", tagClass: .filenameExtension, conformingTo: .plainText)!
+    
+    static var readableContentTypes: [UTType] { [markdownType, .rtf] }
+    static var writableContentTypes: [UTType] { [markdownType, .rtf] }
+    
     var text: String
 
     init(text: String) {
@@ -220,8 +225,15 @@ struct TextDocument: FileDocument {
     }
 
     func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
-        let data = text.data(using: .utf8) ?? Data()
-        return .init(regularFileWithContents: data)
+        if configuration.contentType == .rtf {
+            guard let data = MarkdownToRTFConverter.convert(text) else {
+                throw CocoaError(.fileWriteUnknown)
+            }
+            return .init(regularFileWithContents: data)
+        } else {
+            let data = text.data(using: .utf8) ?? Data()
+            return .init(regularFileWithContents: data)
+        }
     }
 }
 
@@ -384,8 +396,8 @@ struct ContentView: View {
             .fileExporter(
                 isPresented: $isExporting,
                 document: TextDocument(text: viewModel.recognizedText),
-                contentType: .plainText, // Usiamo plainText come base per compatibilità
-                defaultFilename: (viewModel.selectedURL?.deletingPathExtension().lastPathComponent ?? "testo_estratto") + ".md"
+                contentTypes: [TextDocument.markdownType, .rtf],
+                defaultFilename: (viewModel.selectedURL?.deletingPathExtension().lastPathComponent ?? "testo_estratto")
             ) { result in
                 if case .failure(let error) = result {
                     viewModel.errorMessage = "Errore durante l'esportazione: \(error.localizedDescription)"
@@ -565,7 +577,7 @@ struct ContentView: View {
         Button(action: { isExporting = true }) {
             HStack {
                 Image(systemName: "square.and.arrow.up")
-                Text("Esporta il testo (.md)")
+                Text("Esporta il testo")
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 8)
