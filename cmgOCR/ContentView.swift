@@ -46,21 +46,22 @@ struct ContentView: View {
             }
             .dropDestination(for: URL.self) { items, location in
                 guard let url = items.first else { return false }
-                if url.pathExtension.lowercased() == "pdf" {
-                    viewModel.selectPDF(at: url)
+                let allowedExtensions = ["pdf", "png", "jpg", "jpeg", "tiff", "bmp"]
+                if allowedExtensions.contains(url.pathExtension.lowercased()) {
+                    viewModel.selectFile(at: url)
                     return true
                 }
                 return false
             }
             .fileImporter(
                 isPresented: $isImporterPresented,
-                allowedContentTypes: [.pdf],
+                allowedContentTypes: [.pdf, .image],
                 allowsMultipleSelection: false
             ) { result in
                 switch result {
                 case .success(let urls):
                     if let url = urls.first {
-                        viewModel.selectPDF(at: url)
+                        viewModel.selectFile(at: url)
                     }
                 case .failure(let error):
                     viewModel.errorMessage = error.localizedDescription
@@ -73,8 +74,16 @@ struct ContentView: View {
     @ViewBuilder
     private func mainContentView(for url: URL) -> some View {
         HSplitView {
-            PDFKitRepresentedView(url: url)
-                .frame(minWidth: 300, maxWidth: .infinity, maxHeight: .infinity)
+            if viewModel.isImageFile, let nsImage = NSImage(contentsOf: url) {
+                Image(nsImage: nsImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(minWidth: 300, maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.gray.opacity(0.1))
+            } else {
+                PDFKitRepresentedView(url: url)
+                    .frame(minWidth: 300, maxWidth: .infinity, maxHeight: .infinity)
+            }
             
             ocrSideView
                 .frame(minWidth: 300, maxWidth: .infinity, maxHeight: .infinity)
@@ -145,11 +154,11 @@ struct ContentView: View {
     
     private var noDocumentView: some View {
         ContentUnavailableView {
-            Label("No Document", systemImage: "pdfview.fill")
+            Label("No Document", systemImage: "doc.viewfinder")
         } description: {
-            Text("Drag or select a PDF file to start.")
+            Text("Drag or select a PDF or Image file to start.")
         } actions: {
-            Button("Select PDF") { isImporterPresented = true }
+            Button("Select File") { isImporterPresented = true }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
         }
@@ -166,7 +175,7 @@ struct ContentView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .primaryAction) {
             Button(action: { isImporterPresented = true }) {
-                Label("Change PDF", systemImage: "doc.badge.plus")
+                Label("Change File", systemImage: "doc.badge.plus")
             }
             .disabled(viewModel.isProcessing)
         }

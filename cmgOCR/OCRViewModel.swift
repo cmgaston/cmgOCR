@@ -2,6 +2,7 @@
 import SwiftUI
 import PDFKit
 import Vision
+import ImageIO
 
 // MARK: - Modello Strutturale
 struct TextElement {
@@ -35,7 +36,7 @@ class OCRViewModel {
     var errorMessage: String? = nil
     var selectedURL: URL? = nil
 
-    func selectPDF(at url: URL) {
+    func selectFile(at url: URL) {
         // Rilasciamo la risorsa precedente se esiste
         selectedURL?.stopAccessingSecurityScopedResource()
         
@@ -60,6 +61,12 @@ class OCRViewModel {
     deinit {
         selectedURL?.stopAccessingSecurityScopedResource()
     }
+    
+    var isImageFile: Bool {
+        guard let url = selectedURL else { return false }
+        let allowedExtensions = ["png", "jpg", "jpeg", "tiff", "bmp"]
+        return allowedExtensions.contains(url.pathExtension.lowercased())
+    }
 
     func startOCR() async {
         guard let url = selectedURL else { return }
@@ -70,27 +77,41 @@ class OCRViewModel {
         progress = 0.0
         
         do {
-            guard let document = PDFDocument(url: url) else {
-                throw NSError(domain: "cmgOCR", code: 1, userInfo: [NSLocalizedDescriptionKey: String(localized: "The file is not a valid PDF.")])
-            }
-            
-            let pageCount = document.pageCount
-            var accumulatedText = ""
-            
-            for i in 0..<pageCount {
-                guard let page = document.page(at: i) else { continue }
-                if let image = pageToImage(page) {
-                    let pageText = try await recognizeTextWithElements(in: image)
-                    let pageHeader = String.localizedStringWithFormat(String(localized: "--- PAGE %lld ---\n\n"), i + 1)
-                    accumulatedText += pageHeader + pageText + "\n\n"
+            if isImageFile {
+                // Process image file
+                guard let imageSource = CGImageSourceCreateWithURL(url as CFURL, nil),
+                      let cgImage = CGImageSourceCreateImageAtIndex(imageSource, 0, nil) else {
+                    throw NSError(domain: "cmgOCR", code: 2, userInfo: [NSLocalizedDescriptionKey: String(localized: "Unable to load image.")])
                 }
                 
-                await MainActor.run {
-                    progress = Double(i + 1) / Double(pageCount)
+                let pageText = try await recognizeTextWithElements(in: cgImage)
+                recognizedText = pageText
+                progress = 1.0
+                
+            } else {
+                // Process PDF file
+                guard let document = PDFDocument(url: url) else {
+                    throw NSError(domain: "cmgOCR", code: 1, userInfo: [NSLocalizedDescriptionKey: String(localized: "The file is not a valid PDF.")])
                 }
+                
+                let pageCount = document.pageCount
+                var accumulatedText = ""
+                
+                for i in 0..<pageCount {
+                    guard let page = document.page(at: i) else { continue }
+                    if let image = pageToImage(page) {
+                        let pageText = try await recognizeTextWithElements(in: image)
+                        let pageHeader = String.localizedStringWithFormat(String(localized: "--- PAGE %lld ---\n\n"), i + 1)
+                        accumulatedText += pageHeader + pageText + "\n\n"
+                    }
+                    
+                    await MainActor.run {
+                        progress = Double(i + 1) / Double(pageCount)
+                    }
+                }
+                
+                recognizedText = accumulatedText
             }
-            
-            recognizedText = accumulatedText
         } catch {
             errorMessage = String(localized: "Error: \(error.localizedDescription)")
         }
