@@ -2,15 +2,11 @@
   "sourceLanguage" : "en",
   "strings" : {
     "--- PAGE %lld ---\n\n" : {
-
-    },
-    "--- PAGE %lld ---\\n\\n" : {
-      "extractionState" : "stale",
       "localizations" : {
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "--- PAGINA %lld ---\\n\\n"
+            "value" : "--- PAGINA %lld ---"
           }
         }
       }
@@ -46,15 +42,11 @@
       }
     },
     "Change File" : {
-
-    },
-    "Change PDF" : {
-      "extractionState" : "stale",
       "localizations" : {
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cambia PDF"
+            "value" : "Cambia documento"
           }
         }
       }
@@ -69,6 +61,26 @@
         }
       }
     },
+    "Close current file" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chiudi il documento attuale"
+          }
+        }
+      }
+    },
+    "Close File" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chiudi documento"
+          }
+        }
+      }
+    },
     "Copy Text" : {
       "localizations" : {
         "it" : {
@@ -79,19 +91,15 @@
         }
       }
     },
-    "Drag or select a PDF file to start." : {
-      "extractionState" : "stale",
+    "Drag or select a PDF or Image file to start." : {
       "localizations" : {
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Trascina o seleziona un file PDF per iniziare."
+            "value" : "Trascina o seleziona un file PDF o un’immagine per iniziare."
           }
         }
       }
-    },
-    "Drag or select a PDF or Image file to start." : {
-
     },
     "Error during export: %@" : {
       "localizations" : {
@@ -284,15 +292,11 @@
       }
     },
     "Select File" : {
-
-    },
-    "Select PDF" : {
-      "extractionState" : "stale",
       "localizations" : {
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Seleziona PDF"
+            "value" : "Seleziona documento"
           }
         }
       }
@@ -318,7 +322,14 @@
       }
     },
     "Unable to load image." : {
-
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossibile caricare l’immagine"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

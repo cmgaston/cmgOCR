@@ -173,6 +173,16 @@ struct ContentView: View {
     
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
+        if viewModel.selectedURL != nil {
+            ToolbarItem(placement: .navigation) {
+                Button(action: { viewModel.closeFile() }) {
+                    Label("Close File", systemImage: "xmark")
+                }
+                .disabled(viewModel.isProcessing)
+                .help("Close current file")
+            }
+        }
+        
         ToolbarItem(placement: .primaryAction) {
             Button(action: { isImporterPresented = true }) {
                 Label("Change File", systemImage: "doc.badge.plus")

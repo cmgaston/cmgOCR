@@ -62,6 +62,15 @@ class OCRViewModel {
         selectedURL?.stopAccessingSecurityScopedResource()
     }
     
+    func closeFile() {
+        selectedURL?.stopAccessingSecurityScopedResource()
+        selectedURL = nil
+        recognizedText = ""
+        errorMessage = nil
+        progress = 0.0
+        isProcessing = false
+    }
+    
     var isImageFile: Bool {
         guard let url = selectedURL else { return false }
         let allowedExtensions = ["png", "jpg", "jpeg", "tiff", "bmp"]

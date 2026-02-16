@@ -1,5 +1,5 @@
 //
-//  OCR_PDF_AppApp.swift
+//  cmgOCR.swift
 //  cmgOCR
 //
 //  Created by Cristiano M. Gaston on 23/01/26.
