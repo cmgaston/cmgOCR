@@ -10,8 +10,8 @@ struct FormattingToolbar: View {
         HStack(spacing: 12) {
             // Gruppo Testo
             HStack(spacing: 4) {
-                toolbarButton(systemName: "bold", action: toggleBold, tooltip: "Grassetto (Cmd+B)", accessibilityLabel: "Grassetto")
-                toolbarButton(systemName: "italic", action: toggleItalic, tooltip: "Corsivo (Cmd+I)", accessibilityLabel: "Corsivo")
+                toolbarButton(systemName: "bold", action: toggleBold, tooltip: "Bold (Cmd+B)", accessibilityLabel: "Bold")
+                toolbarButton(systemName: "italic", action: toggleItalic, tooltip: "Italic (Cmd+I)", accessibilityLabel: "Italic")
             }
             .padding(4)
             .background(Color(NSColor.windowBackgroundColor).opacity(0.5))
@@ -19,7 +19,7 @@ struct FormattingToolbar: View {
             
             // Gruppo Citazione
             HStack(spacing: 4) {
-                toolbarButton(systemName: "quote.opening", action: toggleQuote, tooltip: "Citazione (Cmd+\\)", accessibilityLabel: "Citazione")
+                toolbarButton(systemName: "quote.opening", action: toggleQuote, tooltip: "Quote (Cmd+\\)", accessibilityLabel: "Quote")
             }
             .padding(4)
             .background(Color(NSColor.windowBackgroundColor).opacity(0.5))
@@ -27,10 +27,10 @@ struct FormattingToolbar: View {
             
             // Gruppo Titoli
             HStack(spacing: 4) {
-                toolbarButton(text: "H1", action: toggleH1, tooltip: "Titolo 1 (Cmd+1)", accessibilityLabel: "Titolo 1")
-                toolbarButton(text: "H2", action: toggleH2, tooltip: "Titolo 2 (Cmd+2)", accessibilityLabel: "Titolo 2")
-                toolbarButton(text: "H3", action: toggleH3, tooltip: "Titolo 3 (Cmd+3)", accessibilityLabel: "Titolo 3")
-                toolbarButton(text: "H4", action: toggleH4, tooltip: "Titolo 4 (Cmd+4)", accessibilityLabel: "Titolo 4")
+                toolbarButton(text: "H1", action: toggleH1, tooltip: "Header 1 (Cmd+1)", accessibilityLabel: "Header 1")
+                toolbarButton(text: "H2", action: toggleH2, tooltip: "Header 2 (Cmd+2)", accessibilityLabel: "Header 2")
+                toolbarButton(text: "H3", action: toggleH3, tooltip: "Header 3 (Cmd+3)", accessibilityLabel: "Header 3")
+                toolbarButton(text: "H4", action: toggleH4, tooltip: "Header 4 (Cmd+4)", accessibilityLabel: "Header 4")
             }
             .padding(4)
             .background(Color(NSColor.windowBackgroundColor).opacity(0.5))

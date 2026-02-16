@@ -38,10 +38,10 @@ struct ContentView: View {
                 isPresented: $isExporting,
                 document: TextDocument(text: viewModel.recognizedText),
                 contentTypes: [TextDocument.markdownType, .rtf],
-                defaultFilename: (viewModel.selectedURL?.deletingPathExtension().lastPathComponent ?? "testo_estratto")
+                defaultFilename: (viewModel.selectedURL?.deletingPathExtension().lastPathComponent ?? "extracted_text")
             ) { result in
                 if case .failure(let error) = result {
-                    viewModel.errorMessage = "Errore durante l'esportazione: \(error.localizedDescription)"
+                    viewModel.errorMessage = String(localized: "Error during export: \(error.localizedDescription)")
                 }
             }
             .dropDestination(for: URL.self) { items, location in
@@ -98,7 +98,7 @@ struct ContentView: View {
             ProgressView(value: viewModel.progress, total: 1.0)
                 .progressViewStyle(.linear)
                 .padding()
-            Text("Analisi in corso... \(viewModel.progress, format: .percent)")
+            Text("Processing... \(viewModel.progress, format: .percent)")
                 .font(.headline)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -106,11 +106,11 @@ struct ContentView: View {
     
     private var emptyOCRView: some View {
         ContentUnavailableView {
-            Label("Pronto per l'OCR", systemImage: "doc.text.magnifyingglass")
+            Label("Ready for OCR", systemImage: "doc.text.magnifyingglass")
         } description: {
-            Text("Clicca su 'Inizia OCR' per estrarre il testo dal documento.")
+            Text("Click 'Start OCR' to extract text from the document.")
         } actions: {
-            Button("Inizia OCR") {
+            Button("Start OCR") {
                 Task { await viewModel.startOCR() }
             }
             .buttonStyle(.borderedProminent)
@@ -133,7 +133,7 @@ struct ContentView: View {
         Button(action: { isExporting = true }) {
             HStack {
                 Image(systemName: "square.and.arrow.up")
-                Text("Esporta il testo")
+                Text("Export Text")
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 8)
@@ -145,11 +145,11 @@ struct ContentView: View {
     
     private var noDocumentView: some View {
         ContentUnavailableView {
-            Label("Nessun documento", systemImage: "pdfview.fill")
+            Label("No Document", systemImage: "pdfview.fill")
         } description: {
-            Text("Trascina o seleziona un file PDF per iniziare.")
+            Text("Drag or select a PDF file to start.")
         } actions: {
-            Button("Seleziona PDF") { isImporterPresented = true }
+            Button("Select PDF") { isImporterPresented = true }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
         }
@@ -166,7 +166,7 @@ struct ContentView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .primaryAction) {
             Button(action: { isImporterPresented = true }) {
-                Label("Cambia PDF", systemImage: "doc.badge.plus")
+                Label("Change PDF", systemImage: "doc.badge.plus")
             }
             .disabled(viewModel.isProcessing)
         }
@@ -174,10 +174,10 @@ struct ContentView: View {
         if viewModel.selectedURL != nil && !viewModel.isProcessing {
             ToolbarItem(placement: .primaryAction) {
                 if viewModel.recognizedText.isEmpty {
-                    Button("Inizia OCR") { Task { await viewModel.startOCR() } }
+                    Button("Start OCR") { Task { await viewModel.startOCR() } }
                         .keyboardShortcut("R", modifiers: .command)
                 } else {
-                    Button("Esporta") { isExporting = true }
+                    Button("Export") { isExporting = true }
                         .keyboardShortcut("S", modifiers: .command)
                 }
             }
@@ -189,31 +189,10 @@ struct ContentView: View {
                 pasteboard.clearContents()
                 pasteboard.setString(viewModel.recognizedText, forType: .string)
             }) {
-                Label("Copia Testo", systemImage: "doc.on.doc")
+                Label("Copy Text", systemImage: "doc.on.doc")
             }
             .disabled(viewModel.recognizedText.isEmpty)
         }
     }
 }
 
-#Preview("Stato Iniziale") {
-    ContentView()
-}
-
-#Preview("Documento Caricato") {
-    let vm = OCRViewModel()
-    // Simuliamo un documento caricato e del testo estratto
-    vm.selectedURL = URL(fileURLWithPath: "/tmp/anteprima.pdf")
-    vm.recognizedText = """
-    # Titolo Documento
-    
-    Questo è un esempio di testo estratto tramite OCR. Puoi vedere come appare la barra di formattazione qui sopra:
-    
-    *   Testo in **grassetto** per evidenziare concetti.
-    *   Testo in *corsivo* per enfasi.
-    
-    ## Sezione 2
-    Usa le scorciatoie Cmd+B, Cmd+I o i pulsanti H2/H3 per strutturare il tuo markdown.
-    """
-    return ContentView(viewModel: vm)
-}

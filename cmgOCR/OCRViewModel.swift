@@ -53,7 +53,7 @@ class OCRViewModel {
             if isSecurityScoped {
                 url.stopAccessingSecurityScopedResource()
             }
-            errorMessage = String(localized: "Errore di accesso: il file non è leggibile.")
+            errorMessage = String(localized: "Access error: the file is not readable.")
         }
     }
     
@@ -71,7 +71,7 @@ class OCRViewModel {
         
         do {
             guard let document = PDFDocument(url: url) else {
-                throw NSError(domain: "cmgOCR", code: 1, userInfo: [NSLocalizedDescriptionKey: String(localized: "Il file non è un PDF valido.")])
+                throw NSError(domain: "cmgOCR", code: 1, userInfo: [NSLocalizedDescriptionKey: String(localized: "The file is not a valid PDF.")])
             }
             
             let pageCount = document.pageCount
@@ -81,7 +81,8 @@ class OCRViewModel {
                 guard let page = document.page(at: i) else { continue }
                 if let image = pageToImage(page) {
                     let pageText = try await recognizeTextWithElements(in: image)
-                    accumulatedText += String(localized: "--- PAGINA \(i + 1) ---\n\n") + pageText + "\n\n"
+                    let pageHeader = String.localizedStringWithFormat(String(localized: "--- PAGE %lld ---\n\n"), i + 1)
+                    accumulatedText += pageHeader + pageText + "\n\n"
                 }
                 
                 await MainActor.run {
@@ -91,7 +92,7 @@ class OCRViewModel {
             
             recognizedText = accumulatedText
         } catch {
-            errorMessage = String(localized: "Errore: \(error.localizedDescription)")
+            errorMessage = String(localized: "Error: \(error.localizedDescription)")
         }
         
         isProcessing = false

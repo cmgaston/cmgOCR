@@ -1,0 +1,306 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Access error: the file is not readable." : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Errore di accesso: il file non è leggibile."
+          }
+        }
+      }
+    },
+    "Bold" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grassetto"
+          }
+        }
+      }
+    },
+    "Bold (Cmd+B)" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grassetto (Cmd+B)"
+          }
+        }
+      }
+    },
+    "Change PDF" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cambia PDF"
+          }
+        }
+      }
+    },
+    "Click 'Start OCR' to extract text from the document." : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clicca su 'Inizia OCR' per estrarre il testo dal documento."
+          }
+        }
+      }
+    },
+    "Copy Text" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copia Testo"
+          }
+        }
+      }
+    },
+    "Drag or select a PDF file to start." : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trascina o seleziona un file PDF per iniziare."
+          }
+        }
+      }
+    },
+    "Error during export: %@" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Errore durante l'esportazione: %@"
+          }
+        }
+      }
+    },
+    "Error: %@" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Errore: %@"
+          }
+        }
+      }
+    },
+    "Export" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esporta"
+          }
+        }
+      }
+    },
+    "Export Text" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esporta il testo"
+          }
+        }
+      }
+    },
+    "Header 1" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titolo 1"
+          }
+        }
+      }
+    },
+    "Header 1 (Cmd+1)" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titolo 1 (Cmd+1)"
+          }
+        }
+      }
+    },
+    "Header 2" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titolo 2"
+          }
+        }
+      }
+    },
+    "Header 2 (Cmd+2)" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titolo 2 (Cmd+2)"
+          }
+        }
+      }
+    },
+    "Header 3" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titolo 3"
+          }
+        }
+      }
+    },
+    "Header 3 (Cmd+3)" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titolo 3 (Cmd+3)"
+          }
+        }
+      }
+    },
+    "Header 4" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titolo 4"
+          }
+        }
+      }
+    },
+    "Header 4 (Cmd+4)" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titolo 4 (Cmd+4)"
+          }
+        }
+      }
+    },
+    "Italic" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Corsivo"
+          }
+        }
+      }
+    },
+    "Italic (Cmd+I)" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Corsivo (Cmd+I)"
+          }
+        }
+      }
+    },
+    "No Document" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nessun documento"
+          }
+        }
+      }
+    },
+    "Processing... %@" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analisi in corso... %@"
+          }
+        }
+      }
+    },
+    "Quote" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Citazione"
+          }
+        }
+      }
+    },
+    "Quote (Cmd+\\)" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Citazione (Cmd+\\)"
+          }
+        }
+      }
+    },
+    "Ready for OCR" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pronto per l'OCR"
+          }
+        }
+      }
+    },
+    "Select PDF" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seleziona PDF"
+          }
+        }
+      }
+    },
+    "Start OCR" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inizia OCR"
+          }
+        }
+      }
+    },
+    "The file is not a valid PDF." : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il file non è un PDF valido."
+          }
+        }
+      }
+    },
+    "--- PAGE %lld ---\\n\\n" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "--- PAGINA %lld ---\\n\\n"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
