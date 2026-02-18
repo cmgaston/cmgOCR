@@ -25,6 +25,13 @@ struct TextElement {
         let nextY = next.observation.boundingBox.origin.y
         let verticalGap = currentY - nextY
         
+        // 0. Controllo preliminare: Stessa riga fisica
+        // Se l'elemento successivo è allineato verticalmente (gap minimo), è la continuazione della stessa riga.
+        // Non può essere un nuovo paragrafo.
+        if abs(verticalGap) < (avgHeight * 0.5) {
+            return false
+        }
+        
         // 1. Distanza verticale (Logica esistente)
         if verticalGap > (avgHeight * 1.5) {
             return true
@@ -43,6 +50,12 @@ struct TextElement {
         // Se la riga attuale è significativamente più corta della larghezza massima (es. < 85%)
         let currentWidth = observation.boundingBox.width
         if currentWidth < (maxLineWidth * 0.85) {
+            // Check anti-falso positivo: se finisce con virgola, probabilmente continua
+            if text.trimmingCharacters(in: .whitespaces).hasSuffix(",") || 
+               text.trimmingCharacters(in: .whitespaces).hasSuffix("\",") ||
+               text.trimmingCharacters(in: .whitespaces).hasSuffix("”,") {
+                return false
+            }
             return true
         }
         
