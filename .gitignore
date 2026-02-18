@@ -1,1 +1,48 @@
+# Xcode
+#
+# gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
+
+## User settings
+xcuserdata/
+
+## Xcode 10
+*.xcworkspace/data/
+
+## Xcode 11
+xcuserdata/
+xcshareddata/
+
+## Xcode 12
+DerivedData/
+*.xcscmblueprint
+*.xccheckout
+
+# Build generated
+build/
+DerivedData/
+
+## Swift Package Manager
+#
+# Add this line if you want to avoid checking in source code from Swift Package Manager dependencies.
+# Packages/
+# Package.pins
+# Package.resolved
+#
+# Xcode workspace generated from Swift Package Manager
+#
+# .swiftpm/
+# !.swiftpm/xcode/
+
+## Playgrounds
+timeline.xctimeline
+playground.xcworkspace
+
+## SwiftUI
+# preview context
+*.previewContext
+
+# Symbols
+SymbolArtifacts/
+
+# Misc
 .DS_Store
