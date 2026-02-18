@@ -18,12 +18,35 @@ struct TextElement {
         observation.boundingBox.height > (avgHeight * 1.3) && !isTitle
     }
     
-    func shouldWrapToNextLine(nextElement: TextElement?) -> Bool {
+    func shouldWrapToNextLine(nextElement: TextElement?, leftMargin: CGFloat, maxLineWidth: CGFloat) -> Bool {
         guard let next = nextElement else { return false }
+        
         let currentY = observation.boundingBox.origin.y
         let nextY = next.observation.boundingBox.origin.y
         let verticalGap = currentY - nextY
-        return verticalGap > (observation.boundingBox.height * 1.5)
+        
+        // 1. Distanza verticale (Logica esistente)
+        if verticalGap > (avgHeight * 1.5) {
+            return true
+        }
+        
+        // 2. Indentazione della prossima riga
+        // Se la prossima riga è indentata rispetto al margine sinistro
+        let nextX = next.observation.boundingBox.origin.x
+        // Usiamo avgHeight come unità di misura (~dimensione font)
+        // Se l'indentazione è maggiore di circa 2 caratteri (2 * avgHeight)
+        if (nextX - leftMargin) > (avgHeight * 2.0) {
+            return true
+        }
+        
+        // 3. Lunghezza della riga corrente (Precedente)
+        // Se la riga attuale è significativamente più corta della larghezza massima (es. < 85%)
+        let currentWidth = observation.boundingBox.width
+        if currentWidth < (maxLineWidth * 0.85) {
+            return true
+        }
+        
+        return false
     }
 }
 
@@ -163,6 +186,10 @@ class OCRViewModel {
                     return TextElement(observation: obs, text: text, avgHeight: avgHeight)
                 }
                 
+                // Calcoliamo statistiche del layout per il rilevamento paragrafi
+                let minX = elements.map { $0.observation.boundingBox.origin.x }.min() ?? 0
+                let maxLineWidth = elements.map { $0.observation.boundingBox.width }.max() ?? 1.0
+                
                 var output = ""
                 for (index, element) in elements.enumerated() {
                     let next = (index + 1 < elements.count) ? elements[index + 1] : nil
@@ -173,7 +200,7 @@ class OCRViewModel {
                     } else if element.isHeader {
                         output += "\n## " + text + "\n"
                     } else {
-                        let shouldWrap = element.shouldWrapToNextLine(nextElement: next)
+                        let shouldWrap = element.shouldWrapToNextLine(nextElement: next, leftMargin: minX, maxLineWidth: maxLineWidth)
                         
                         if text.hasSuffix("-") && next != nil {
                             // Rimuove il trattino di a capo e unisce alla parola successiva senza spazi
