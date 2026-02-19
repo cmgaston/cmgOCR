@@ -75,8 +75,8 @@ struct MacTextEditor: NSViewRepresentable {
             
             let newRange = textView.selectedRange()
             if parent.selectedRange != newRange {
-                // Aggiorniamo la selezione immediatamente per evitare race conditions
-                // durante la digitazione veloce.
+                // Update the selection immediately to avoid race conditions
+                // during fast typing.
                 Task { @MainActor in
                     self.parent.selectedRange = newRange
                 }

@@ -2,9 +2,9 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-// MARK: - Documento per Esportazione
+// MARK: - Export Document
 struct TextDocument: FileDocument {
-    // Definizione dinamica basata sull'estensione per evitare errori di Info.plist mancante
+    // Dynamic definition based on extension to avoid missing Info.plist errors
     static let markdownType = UTType(tag: "md", tagClass: .filenameExtension, conformingTo: .plainText)!
     
     static var readableContentTypes: [UTType] { [markdownType, .rtf] }

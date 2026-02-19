@@ -2,7 +2,7 @@
 import SwiftUI
 import PDFKit
 
-// MARK: - Componente Visualizzatore PDF
+// MARK: - PDF Viewer Component
 struct PDFKitRepresentedView: NSViewRepresentable {
     let url: URL
     

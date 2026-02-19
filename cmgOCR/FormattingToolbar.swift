@@ -8,7 +8,7 @@ struct FormattingToolbar: View {
     
     var body: some View {
         HStack(spacing: 12) {
-            // Gruppo Testo
+            // Text Group
             HStack(spacing: 4) {
                 toolbarButton(systemName: "bold", action: toggleBold, tooltip: "Bold (Cmd+B)", accessibilityLabel: "Bold")
                 toolbarButton(systemName: "italic", action: toggleItalic, tooltip: "Italic (Cmd+I)", accessibilityLabel: "Italic")
@@ -17,7 +17,7 @@ struct FormattingToolbar: View {
             .background(Color(NSColor.windowBackgroundColor).opacity(0.5))
             .cornerRadius(8)
             
-            // Gruppo Citazione
+            // Quote Group
             HStack(spacing: 4) {
                 toolbarButton(systemName: "quote.opening", action: toggleQuote, tooltip: "Quote (Cmd+\\)", accessibilityLabel: "Quote")
             }
@@ -25,7 +25,7 @@ struct FormattingToolbar: View {
             .background(Color(NSColor.windowBackgroundColor).opacity(0.5))
             .cornerRadius(8)
             
-            // Gruppo Titoli
+            // Title Group
             HStack(spacing: 4) {
                 toolbarButton(text: "H1", action: toggleH1, tooltip: "Header 1 (Cmd+1)", accessibilityLabel: "Header 1")
                 toolbarButton(text: "H2", action: toggleH2, tooltip: "Header 2 (Cmd+2)", accessibilityLabel: "Header 2")

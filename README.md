@@ -31,11 +31,10 @@ To keep things as simple as possible it's been intentionally developed for one p
 
 ...but probably won't because I don't have much time or interest in creating a perfect product:
 
-- [ ] Lack of multi-column support.
-- [ ] Some buttons are redundant and I don't particularly like their placement or design.
-- [ ] When Markdown is chosen for the destination file, it is actually saved with a .txt extension. There's also an "Other format" option that doesn't make any sense (it's just the same file with no extension).
-- [ ] The icon is what it is. I've seen worse.
-- [ ] Most comments in the code are in Italian because that's the language I originally developed it with. Only later I added the localization file but I didn't change the comments. The code is not complex, I think they can stay as they are.
+- Lack of multi-column support.
+- Some buttons are redundant and I don't particularly like their placement or design.
+- When Markdown is chosen for the destination file, it is actually saved with a .txt extension. There's also an "Other format" option that doesn't make any sense (it's just the same file with no extension).
+- The icon is what it is. I've seen worse.
 
 ## Disclaimer
 

@@ -4,7 +4,7 @@ import PDFKit
 import Vision
 import ImageIO
 
-// MARK: - Modello Strutturale
+// MARK: - Structural Model
 struct TextElement {
     let observation: VNRecognizedTextObservation
     let text: String
@@ -25,32 +25,32 @@ struct TextElement {
         let nextY = next.observation.boundingBox.origin.y
         let verticalGap = currentY - nextY
         
-        // 0. Controllo preliminare: Stessa riga fisica
-        // Se l'elemento successivo è allineato verticalmente (gap minimo), è la continuazione della stessa riga.
-        // Non può essere un nuovo paragrafo.
+        // 0. Preliminary check: Same physical line
+        // If the next element is vertically aligned (minimum gap), it is a continuation of the same line.
+        // It cannot be a new paragraph.
         if abs(verticalGap) < (avgHeight * 0.5) {
             return false
         }
         
-        // 1. Distanza verticale (Logica esistente)
+        // 1. Vertical distance (Existing logic)
         if verticalGap > (avgHeight * 1.5) {
             return true
         }
         
-        // 2. Indentazione della prossima riga
-        // Se la prossima riga è indentata rispetto al margine sinistro
+        // 2. Next line indentation
+        // If the next line is indented relative to the left margin
         let nextX = next.observation.boundingBox.origin.x
-        // Usiamo avgHeight come unità di misura (~dimensione font)
-        // Se l'indentazione è maggiore di circa 2 caratteri (2 * avgHeight)
+        // Use avgHeight as a unit of measure (~font size)
+        // If the indentation is greater than about 2 characters (2 * avgHeight)
         if (nextX - leftMargin) > (avgHeight * 2.0) {
             return true
         }
         
-        // 3. Lunghezza della riga corrente (Precedente)
-        // Se la riga attuale è significativamente più corta della larghezza massima (es. < 85%)
+        // 3. Current line length (Previous)
+        // If the current line is significantly shorter than the maximum width (e.g. < 85%)
         let currentWidth = observation.boundingBox.width
         if currentWidth < (maxLineWidth * 0.85) {
-            // Check anti-falso positivo: se finisce con virgola, probabilmente continua
+            // Anti-false positive check: if it ends with a comma, it probably continues
             if text.trimmingCharacters(in: .whitespaces).hasSuffix(",") || 
                text.trimmingCharacters(in: .whitespaces).hasSuffix("\",") ||
                text.trimmingCharacters(in: .whitespaces).hasSuffix("”,") {
@@ -73,20 +73,20 @@ class OCRViewModel {
     var selectedURL: URL? = nil
 
     func selectFile(at url: URL) {
-        // Rilasciamo la risorsa precedente se esiste
+        // Release the previous resource if it exists
         selectedURL?.stopAccessingSecurityScopedResource()
         
-        // Per i file provenienti da Drag & Drop o File Picker, dobbiamo chiedere l'accesso.
+        // For files coming from Drag & Drop or File Picker, we need to request access.
         let isSecurityScoped = url.startAccessingSecurityScopedResource()
         
-        // Verifichiamo se il file è leggibile.
+        // Check if the file is readable.
         if FileManager.default.isReadableFile(atPath: url.path) {
             selectedURL = url
             recognizedText = ""
             errorMessage = nil
             progress = 0.0
         } else {
-            // Se non è leggibile e avevamo ottenuto un accesso di sicurezza, lo rilasciamo subito
+            // If it is not readable and we had obtained security access, we release it immediately
             if isSecurityScoped {
                 url.stopAccessingSecurityScopedResource()
             }
@@ -199,7 +199,7 @@ class OCRViewModel {
                     return TextElement(observation: obs, text: text, avgHeight: avgHeight)
                 }
                 
-                // Calcoliamo statistiche del layout per il rilevamento paragrafi
+                // Calculate layout statistics for paragraph detection
                 let minX = elements.map { $0.observation.boundingBox.origin.x }.min() ?? 0
                 let maxLineWidth = elements.map { $0.observation.boundingBox.width }.max() ?? 1.0
                 
@@ -216,7 +216,7 @@ class OCRViewModel {
                         let shouldWrap = element.shouldWrapToNextLine(nextElement: next, leftMargin: minX, maxLineWidth: maxLineWidth)
                         
                         if text.hasSuffix("-") && next != nil {
-                            // Rimuove il trattino di a capo e unisce alla parola successiva senza spazi
+                            // Removes the hyphen and joins with the next word without spaces
                             text.removeLast()
                             output += text
                         } else {

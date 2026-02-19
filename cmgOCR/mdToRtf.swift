@@ -45,7 +45,7 @@ class MarkdownToRTFConverter {
             
             let lineString = NSMutableAttributedString(string: processedLine, attributes: attributes)
             
-            // Grassetto **testo**
+            // Bold **text**
             var range = NSRange(location: 0, length: lineString.length)
             if let boldPattern = try? NSRegularExpression(pattern: "\\*\\*(.+?)\\*\\*", options: []) {
                 let matches = boldPattern.matches(in: lineString.string, options: [], range: range).reversed()
@@ -58,7 +58,7 @@ class MarkdownToRTFConverter {
                 }
             }
             
-            // Corsivo *testo* o _testo_
+            // Italic *text* or _text_
             range = NSRange(location: 0, length: lineString.length)
             if let italicPattern = try? NSRegularExpression(pattern: "(?<!\\*)\\*(?!\\*)(.+?)(?<!\\*)\\*(?!\\*)|_(.+?)_", options: []) {
                 let matches = italicPattern.matches(in: lineString.string, options: [], range: range).reversed()
@@ -71,7 +71,7 @@ class MarkdownToRTFConverter {
                 }
             }
             
-            // Codice inline `testo`
+            // Inline code `text`
             range = NSRange(location: 0, length: lineString.length)
             if let codePattern = try? NSRegularExpression(pattern: "`(.+?)`", options: []) {
                 let matches = codePattern.matches(in: lineString.string, options: [], range: range).reversed()
@@ -95,7 +95,7 @@ class MarkdownToRTFConverter {
                 documentAttributes: [.documentType: NSAttributedString.DocumentType.rtf]
             )
         } catch {
-            print("Errore conversione RTF: \(error)")
+            print("RTF conversion error: \(error)")
             return nil
         }
     }
