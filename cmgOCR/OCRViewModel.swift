@@ -72,6 +72,10 @@ class OCRViewModel {
     var errorMessage: String? = nil
     var selectedURL: URL? = nil
 
+    /// Languages passed to Vision's text recognizer, in priority order.
+    /// Change this list to support additional or different languages.
+    var recognitionLanguages: [String] = ["it-IT", "en-US"]
+
     func selectFile(at url: URL) {
         // Release the previous resource if it exists
         selectedURL?.stopAccessingSecurityScopedResource()
@@ -113,10 +117,12 @@ class OCRViewModel {
         return allowedExtensions.contains(url.pathExtension.lowercased())
     }
 
+    @MainActor
     func startOCR() async {
         guard let url = selectedURL else { return }
         
         isProcessing = true
+        defer { isProcessing = false }
         errorMessage = nil
         recognizedText = ""
         progress = 0.0
@@ -150,9 +156,7 @@ class OCRViewModel {
                         accumulatedText += pageHeader + pageText + "\n\n"
                     }
                     
-                    await MainActor.run {
-                        progress = Double(i + 1) / Double(pageCount)
-                    }
+                    progress = Double(i + 1) / Double(pageCount)
                 }
                 
                 recognizedText = accumulatedText
@@ -160,8 +164,6 @@ class OCRViewModel {
         } catch {
             errorMessage = String(localized: "Error: \(error.localizedDescription)")
         }
-        
-        isProcessing = false
     }
 
     private func pageToImage(_ page: PDFPage) -> CGImage? {
@@ -234,7 +236,7 @@ class OCRViewModel {
             
             request.recognitionLevel = .accurate
             request.usesLanguageCorrection = true
-            request.recognitionLanguages = ["it-IT", "en-US"]
+            request.recognitionLanguages = self.recognitionLanguages
             
             let handler = VNImageRequestHandler(cgImage: image, options: [:])
             do {

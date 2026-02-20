@@ -5,7 +5,7 @@ import UniformTypeIdentifiers
 // MARK: - Export Document
 struct TextDocument: FileDocument {
     // Dynamic definition based on extension to avoid missing Info.plist errors
-    static let markdownType = UTType(tag: "md", tagClass: .filenameExtension, conformingTo: .plainText)!
+    static let markdownType = UTType(tag: "md", tagClass: .filenameExtension, conformingTo: .plainText) ?? .plainText
     
     static var readableContentTypes: [UTType] { [markdownType, .rtf] }
     static var writableContentTypes: [UTType] { [markdownType, .rtf] }

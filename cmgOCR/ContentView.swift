@@ -165,10 +165,21 @@ struct ContentView: View {
     }
     
     private func errorOverlay(_ error: String) -> some View {
-        Text(error)
-            .foregroundColor(.red)
-            .padding()
-            .background(.ultraThinMaterial)
+        HStack(spacing: 8) {
+            Text(error)
+                .foregroundColor(.red)
+            Spacer()
+            Button {
+                viewModel.errorMessage = nil
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundStyle(.red.opacity(0.8))
+            }
+            .buttonStyle(.plain)
+        }
+        .padding()
+        .background(.ultraThinMaterial)
+        .onTapGesture { viewModel.errorMessage = nil }
     }
     
     @ToolbarContentBuilder

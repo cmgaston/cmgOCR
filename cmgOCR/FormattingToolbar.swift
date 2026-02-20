@@ -121,20 +121,32 @@ struct FormattingToolbar: View {
         if range.length > 0 {
             guard range.location + range.length <= nsString.length else { return }
             let selectedText = nsString.substring(with: range)
-            
-            if selectedText.hasPrefix(delimiter) && selectedText.hasSuffix(delimiter) {
-                let start = selectedText.index(selectedText.startIndex, offsetBy: delimiter.count)
-                let end = selectedText.index(selectedText.endIndex, offsetBy: -delimiter.count)
+
+            // Robust toggle-off check:
+            // 1. The selection must be longer than 2× the delimiter (non-empty inner content)
+            // 2. The inner content must not itself start/end with the delimiter
+            //    — this avoids misreading "**a**b**" as "already bold" and corrupting it
+            let delimLen = delimiter.count
+            let alreadyFormatted: Bool = {
+                guard selectedText.count > delimLen * 2,
+                      selectedText.hasPrefix(delimiter),
+                      selectedText.hasSuffix(delimiter) else { return false }
+                let inner = String(selectedText.dropFirst(delimLen).dropLast(delimLen))
+                return !inner.hasPrefix(delimiter) && !inner.hasSuffix(delimiter)
+            }()
+
+            if alreadyFormatted {
+                let start = selectedText.index(selectedText.startIndex, offsetBy: delimLen)
+                let end = selectedText.index(selectedText.endIndex, offsetBy: -delimLen)
                 let newSnippet = String(selectedText[start..<end])
-                
                 let newText = nsString.replacingCharacters(in: range, with: newSnippet)
                 text = newText
-                selectedRange = NSRange(location: range.location, length: range.length - (delimiter.count * 2))
+                selectedRange = NSRange(location: range.location, length: range.length - (delimLen * 2))
             } else {
                 let newSnippet = "\(delimiter)\(selectedText)\(delimiter)"
                 let newText = nsString.replacingCharacters(in: range, with: newSnippet)
                 text = newText
-                selectedRange = NSRange(location: range.location, length: range.length + (delimiter.count * 2))
+                selectedRange = NSRange(location: range.location, length: range.length + (delimLen * 2))
             }
         } else {
             let newSnippet = "\(delimiter)\(delimiter)"
